@@ -127,13 +127,29 @@ function processLead($pdo, $leadgenId, $formId, $pageId) {
     $orgId = $orgBinding['organization_id'];
 
     // D. Fetch raw lead data from Meta Graph API
-    $graphUrl = "https://graph.facebook.com/v19.0/{$leadgenId}?access_token=" . urlencode($accessToken);
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $graphUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    unset($ch); // curl_close is deprecated in PHP 8.5+
+    if (strpos($leadgenId, 'sim_') === 0) {
+        // Mock response for Simulated Leads (from Diagnostic Tool)
+        $httpCode = 200;
+        $response = json_encode([
+            'created_time' => date('Y-m-d\TH:i:sP'),
+            'id' => $leadgenId,
+            'field_data' => [
+                ['name' => 'full_name', 'values' => ['Simulated Lead']],
+                ['name' => 'email', 'values' => ['simulated@example.com']],
+                ['name' => 'phone_number', 'values' => ['+12345678900']],
+                ['name' => 'company_name', 'values' => ['Test Corp']]
+            ]
+        ]);
+        writeLog("Bypassed Graph API for Simulated Lead: {$leadgenId}");
+    } else {
+        $graphUrl = "https://graph.facebook.com/v19.0/{$leadgenId}?access_token=" . urlencode($accessToken);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $graphUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        unset($ch); // curl_close is deprecated in PHP 8.5+
+    }
 
     if ($httpCode !== 200) {
         throw new Exception("Graph API returned {$httpCode}: {$response}");

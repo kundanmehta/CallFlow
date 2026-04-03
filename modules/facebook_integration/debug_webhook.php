@@ -88,7 +88,7 @@ include '../../includes/header.php';
                                 <td><span class="badge <?= $badgeClass ?>"><?= e($log['event_type']) ?></span></td>
                                 <td class="text-muted"><?= date('H:i:s', strtotime($log['created_at'])) ?></td>
                                 <td>
-                                    <button class="btn btn-link btn-sm p-0" onclick='viewPayload(<?= json_encode($log['payload']) ?>)'>View</button>
+                                    <button class="btn btn-link btn-sm p-0" onclick="viewPayload(this.dataset.payload)" data-payload="<?= htmlspecialchars($log['payload'] ?? '', ENT_QUOTES, 'UTF-8') ?>">View</button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
